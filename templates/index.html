@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Vendas</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Barra Superior -->
+    <header class="bg-slate-900 text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-xl">📦</span>
+                <span class="font-semibold text-sm sm:text-base">Painel: <span class="text-indigo-400">{{ current_user.email }}</span></span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm px-3 py-1.5 rounded-lg font-medium transition duration-200 shadow-sm">
+                Sair
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6">
+        
+        <h1 class="text-2xl sm:text-3xl font-bold text-center mb-6 text-slate-900 tracking-tight">Organizador de Pedidos</h1>
+
+        <!-- Mensagens Flash (Alertas) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="mb-6 space-y-2">
+              {% for category, message in messages %}
+                <div class="p-4 rounded-xl text-sm font-medium shadow-sm flex justify-between items-center 
+                    {% if category == 'success' %} bg-emerald-50 text-emerald-800 border border-emerald-200
+                    {% elif category == 'danger' or category == 'error' %} bg-rose-50 text-rose-800 border border-rose-200
+                    {% else %} bg-amber-50 text-amber-800 border border-amber-200 {% endif %}">
+                    <span>{{ message }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <!-- Navegação por Abas (Botões Modernos) -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-slate-200/80 p-1.5 rounded-xl flex space-x-2 shadow-inner">
+                <button onclick="mudarAba('pedidos')" id="btn-pedidos" class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-white text-indigo-600 shadow-sm">
+                    ⚡ Pedidos (Cadastros & Dia)
+                </button>
+                <button onclick="mudarAba('registros')" id="btn-registros" class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-600 hover:text-slate-900">
+                    📁 Registros (Histórico & Feedback)
+                </button>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 1: ABA PEDIDOS -->
+        <div id="tab-pedidos" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Formulário de Novo Pedido -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-6">
+                        <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <span>✨</span> Novo Pedido
+                        </h2>
+                        <form method="POST" class="space-y-4">
+                            <div>
+                                <label for="nome_cliente" class="block text-xs font-bold text-slate-600 uppercase mb-1">Nome do Cliente</label>
+                                <input type="text" id="nome_cliente" name="nome_cliente" required 
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                            </div>
+                            <div>
+                                <label for="produto" class="block text-xs font-bold text-slate-600 uppercase mb-1">Produto</label>
+                                <input type="text" id="produto" name="produto" required 
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                            </div>
+                            <div>
+                                <label for="horario" class="block text-xs font-bold text-slate-600 uppercase mb-1">Horário de Entrega</label>
+                                <input type="text" id="horario" name="horario" placeholder="Ex: 14:30" required 
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                            </div>
+                            <div>
+                                <label for="valor" class="block text-xs font-bold text-slate-600 uppercase mb-1">Valor (R$)</label>
+                                <input type="text" id="valor" name="valor" placeholder="Ex: 45,00" required 
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                            </div>
+                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-sm shadow-indigo-200">
+                                Salvar Pedido
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Listagem Rápida - Pedidos Pendentes do Dia -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                            <h2 class="font-bold text-slate-800 text-sm sm:text-base">🚀 Pedidos Pendentes do Dia</h2>
+                            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full">{{ pendentes|length }} pendente(s)</span>
+                        </div>
+                        
+                        <div class="p-6">
+                            {% if pendentes %}
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr class="border-b border-slate-200 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                <th class="pb-3 px-2">Cliente</th>
+                                                <th class="pb-3 px-2">Produto</th>
+                                                <th class="pb-3 px-2">Horário</th>
+                                                <th class="pb-3 px-2">Valor</th>
+                                                <th class="pb-3 px-2 text-right">Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 text-sm">
+                                            {% for p in pendentes %}
+                                            <tr class="hover:bg-slate-50/80 transition">
+                                                <td class="py-3 px-2 font-medium text-slate-900">{{ p.nome_cliente }}</td>
+                                                <td class="py-3 px-2 text-slate-600">{{ p.produto }}</td>
+                                                <td class="py-3 px-2 text-slate-600">{{ p.horario }}</td>
+                                                <td class="py-3 px-2 text-slate-900 font-semibold">R$ {{ p.valor }}</td>
+                                                <td class="py-3 px-2 text-right space-x-1">
+                                                    <a href="{{ url_for('alternar_status', id=p.id) }}" class="inline-flex items-center bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium px-2.5 py-1.5 rounded-lg text-xs transition" title="Marcar como Entregue">
+                                                        ✔ Entregar
+                                                    </a>
+                                                    <a href="{{ url_for('apagar', id=p.id) }}" onclick="return confirm('Deseja realmente apagar este pedido?');" class="inline-flex items-center bg-rose-50 hover:bg-rose-100 text-rose-600 font-medium px-2.5 py-1.5 rounded-lg text-xs transition" title="Apagar">
+                                                        🗑️
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-12">
+                                    <span class="text-3xl block mb-2">🎉</span>
+                                    <p class="text-slate-500 text-sm">Nenhum pedido pendente no momento.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SEÇÃO 2: ABA REGISTROS (Histórico) -->
+        <div id="tab-registros" class="hidden space-y-6">
+            
+            <!-- Histórico de Pedidos Entregues (Com Feedback) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                    <h2 class="font-bold text-slate-800 text-sm sm:text-base">✅ Histórico de Entregas & Feedbacks</h2>
+                    <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">{{ entregues|length }} entregue(s)</span>
+                </div>
+
+                <div class="p-6">
+                    {% if entregues %}
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="pb-3 px-2">Cliente</th>
+                                        <th class="pb-3 px-2">Produto</th>
+                                        <th class="pb-3 px-2">Horário</th>
+                                        <th class="pb-3 px-2">Valor</th>
+                                        <th class="pb-3 px-2">Feedback do Cliente</th>
+                                        <th class="pb-3 px-2 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm">
+                                    {% for p in entregues %}
+                                    <tr class="hover:bg-slate-50/80 transition">
+                                        <td class="py-3 px-2 font-medium text-slate-900">{{ p.nome_cliente }}</td>
+                                        <td class="py-3 px-2 text-slate-600">{{ p.produto }}</td>
+                                        <td class="py-3 px-2 text-slate-600">{{ p.horario }}</td>
+                                        <td class="py-3 px-2 text-slate-900 font-semibold">R$ {{ p.valor }}</td>
+                                        <td class="py-3 px-2">
+                                            {% if p.feedback %}
+                                                <span class="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg text-xs inline-block font-medium border border-emerald-100">💬 "{{ p.feedback }}"</span>
+                                            {% else %}
+                                                <span class="text-slate-400 italic text-xs">Sem feedback registrado</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3 px-2 text-right space-x-1">
+                                            <!-- Botão que abre o campo/modal de Feedback -->
+                                            <button onclick="abrirModalFeedback('{{ p.id }}')" class="inline-flex items-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium px-2.5 py-1.5 rounded-lg text-xs transition">
+                                                📝 Feedback
+                                            </button>
+                                            <a href="{{ url_for('apagar', id=p.id) }}" onclick="return confirm('Deseja apagar este registro?');" class="inline-flex items-center bg-rose-50 hover:bg-rose-100 text-rose-600 font-medium px-2.5 py-1.5 rounded-lg text-xs transition" title="Apagar">
+                                                🗑️
+                                            </a>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Modal de Feedback embutido para cada item -->
+                                    <div id="modal-feedback-{{ p.id }}" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+                                        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100">
+                                            <div class="flex justify-between items-center mb-4">
+                                                <h3 class="font-bold text-slate-900">Registrar Feedback: <span class="text-indigo-600">{{ p.nome_cliente }}</span></h3>
+                                                <button onclick="fecharModalFeedback('{{ p.id }}')" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+                                            </div>
+                                            <form action="{{ url_for('salvar_feedback', id=p.id) }}" method="POST" class="space-y-4">
+                                                <div>
+                                                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Comentário / Avaliação:</label>
+                                                    <textarea name="feedback" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">{{ p.feedback if p.feedback else '' }}</textarea>
+                                                </div>
+                                                <div class="flex justify-end space-x-2">
+                                                    <button type="button" onclick="fecharModalFeedback('{{ p.id }}')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">Cancelar</button>
+                                                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition shadow-sm">Salvar Feedback</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12">
+                            <span class="text-3xl block mb-2">📂</span>
+                            <p class="text-slate-500 text-sm">Nenhum pedido entregue registrado ainda.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Todos os Registros (Geral) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                    <h2 class="font-bold text-slate-800 text-sm sm:text-base">📋 Todos os Registros (Geral)</h2>
+                </div>
+                <div class="p-6">
+                    {% if todos %}
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="pb-3 px-2">Cliente</th>
+                                        <th class="pb-3 px-2">Produto</th>
+                                        <th class="pb-3 px-2">Horário</th>
+                                        <th class="pb-3 px-2">Valor</th>
+                                        <th class="pb-3 px-2">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm">
+                                    {% for p in todos %}
+                                    <tr class="hover:bg-slate-50/80 transition">
+                                        <td class="py-3 px-2 font-medium text-slate-900">{{ p.nome_cliente }}</td>
+                                        <td class="py-3 px-2 text-slate-600">{{ p.produto }}</td>
+                                        <td class="py-3 px-2 text-slate-600">{{ p.horario }}</td>
+                                        <td class="py-3 px-2 text-slate-900 font-semibold">R$ {{ p.valor }}</td>
+                                        <td class="py-3 px-2">
+                                            {% if p.status == 'Pendente' %}
+                                                <span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full text-xs font-bold inline-block">Pendente</span>
+                                            {% else %}
+                                                <span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-xs font-bold inline-block">Entregue</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12">
+                            <p class="text-slate-500 text-sm">Nenhum registro encontrado no sistema.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Script de Navegação entre Abas e Modais -->
+    <script>
+        function mudarAba(aba) {
+            const tabPedidos = document.getElementById('tab-pedidos');
+            const tabRegistros = document.getElementById('tab-registros');
+            const btnPedidos = document.getElementById('btn-pedidos');
+            const btnRegistros = document.getElementById('btn-registros');
+
+            if (aba === 'pedidos') {
+                tabPedidos.classList.remove('hidden');
+                tabRegistros.classList.add('hidden');
+                
+                btnPedidos.className = "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-white text-indigo-600 shadow-sm";
+                btnRegistros.className = "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-600 hover:text-slate-900";
+            } else {
+                tabPedidos.classList.add('hidden');
+                tabRegistros.classList.remove('hidden');
+                
+                btnRegistros.className = "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-white text-indigo-600 shadow-sm";
+                btnPedidos.className = "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-600 hover:text-slate-900";
+            }
+        }
+
+        function abrirModalFeedback(id) {
+            document.getElementById('modal-feedback-' + id).classList.remove('hidden');
+        }
+
+        function fecharModalFeedback(id) {
+            document.getElementById('modal-feedback-' + id).classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
