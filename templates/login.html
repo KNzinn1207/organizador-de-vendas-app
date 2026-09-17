@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Organizador de Vendas</title>
+    <title>Login - MeuComércio</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex items-center justify-center font-sans px-4">
 
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 max-w-md w-full p-8 space-y-6">
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
         
-        <!-- Cabeçalho -->
-        <div class="text-center space-y-1">
-            <span class="text-3xl">🔐</span>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Entrar no Sistema</h1>
-            <p class="text-xs text-slate-500">Insira suas credenciais para acessar o painel</p>
+        <!-- Logotipo / Título da Marca em Destaque -->
+        <div class="text-center mb-8">
+            <span class="text-3xl block mb-1">📦</span>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">MeuComércio</h1>
+            <p class="text-xs text-slate-500 mt-1">Faça login para gerenciar seus pedidos</p>
         </div>
 
         <!-- Mensagens Flash (Alertas) -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
-            <div class="space-y-2">
+            <div class="mb-6 space-y-2">
               {% for category, message in messages %}
-                <div class="p-3 rounded-xl text-xs font-medium 
+                <div class="p-3.5 rounded-xl text-xs font-medium shadow-sm flex items-center 
                     {% if category == 'success' %} bg-emerald-50 text-emerald-800 border border-emerald-200
                     {% elif category == 'danger' or category == 'error' %} bg-rose-50 text-rose-800 border border-rose-200
                     {% else %} bg-amber-50 text-amber-800 border border-amber-200 {% endif %}">
-                    {{ message }}
+                    <span>{{ message }}</span>
                 </div>
               {% endfor %}
             </div>
@@ -38,24 +38,24 @@
         <form method="POST" class="space-y-4">
             <div>
                 <label for="email" class="block text-xs font-bold text-slate-600 uppercase mb-1">E-mail</label>
-                <input type="email" id="email" name="email" required 
+                <input type="email" id="email" name="email" placeholder="seu@email.com" required 
                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
             </div>
             <div>
                 <label for="senha" class="block text-xs font-bold text-slate-600 uppercase mb-1">Senha</label>
-                <input type="password" id="senha" name="senha" required 
+                <input type="password" id="senha" name="senha" placeholder="••••••••" required 
                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
             </div>
             <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-sm shadow-indigo-200 mt-2">
-                Entrar
+                Entrar na Conta
             </button>
         </form>
 
         <!-- Rodapé do Card -->
-        <div class="text-center pt-2 border-t border-slate-100">
+        <div class="mt-6 text-center border-t border-slate-100 pt-4">
             <p class="text-xs text-slate-500">
-                Não tem uma conta? 
-                <a href="{{ url_for('register') }}" class="text-indigo-600 font-semibold hover:underline">Criar Conta</a>
+                Ainda não tem uma conta? 
+                <a href="{{ url_for('register') }}" class="text-indigo-600 font-semibold hover:underline">Cadastre-se</a>
             </p>
         </div>
 
