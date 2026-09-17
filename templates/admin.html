@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Administrador</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Barra Superior Admin -->
+    <header class="bg-slate-900 text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-xl">🛠️</span>
+                <span class="font-semibold text-sm sm:text-base">Painel Administrativo (Admin: <span class="text-indigo-400">{{ current_user.email }}</span>)</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm px-3 py-1.5 rounded-lg font-medium transition duration-200 shadow-sm">
+                Sair
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6 space-y-6">
+        
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Gerenciamento de Usuários</h1>
+
+        <!-- Mensagens Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="space-y-2">
+              {% for category, message in messages %}
+                <div class="p-4 rounded-xl text-sm font-medium shadow-sm flex justify-between items-center 
+                    {% if category == 'success' %} bg-emerald-50 text-emerald-800 border border-emerald-200
+                    {% elif category == 'danger' or category == 'error' %} bg-rose-50 text-rose-800 border border-rose-200
+                    {% else %} bg-amber-50 text-amber-800 border border-amber-200 {% endif %}">
+                    <span>{{ message }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <!-- Tabela de Usuários -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="font-bold text-slate-800 text-sm sm:text-base">👥 Usuários Cadastrados</h2>
+                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full">{{ usuarios|length }} usuário(s)</span>
+            </div>
+
+            <div class="p-6">
+                {% if usuarios %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                    <th class="pb-3 px-2">E-mail</th>
+                                    <th class="pb-3 px-2">Tipo</th>
+                                    <th class="pb-3 px-2">Status de Acesso</th>
+                                    <th class="pb-3 px-2 text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-sm">
+                                {% for u in usuarios %}
+                                <tr class="hover:bg-slate-50/80 transition">
+                                    <td class="py-3 px-2 font-medium text-slate-900">{{ u.email }}</td>
+                                    <td class="py-3 px-2">
+                                        {% if u.is_admin %}
+                                            <span class="bg-purple-100 text-purple-800 px-2.5 py-1 rounded-full text-xs font-bold inline-block">Administrador</span>
+                                        {% else %}
+                                            <span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full text-xs font-medium inline-block">Cliente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 px-2">
+                                        {% if u.ativo %}
+                                            <span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-xs font-bold inline-block">Ativo (Liberado)</span>
+                                        {% else %}
+                                            <span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full text-xs font-bold inline-block">Bloqueado (Pendente)</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 px-2 text-right">
+                                        {% if not u.ativo and not u.is_admin %}
+                                            <a href="{{ url_for('aprovar_usuario', id=u.id) }}" class="inline-flex items-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-xl text-xs transition shadow-sm">
+                                                ✔ Aprovar Acesso
+                                            </a>
+                                        {% elif u.is_admin %}
+                                            <span class="text-xs text-slate-400 italic">Admin principal</span>
+                                        {% else %}
+                                            <span class="text-xs text-emerald-600 font-medium">Liberado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-12">
+                        <p class="text-slate-500 text-sm">Nenhum usuário cadastrado.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </main>
+
+</body>
+</html>

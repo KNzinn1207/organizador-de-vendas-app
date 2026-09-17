@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aguardando Aprovação</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex items-center justify-center font-sans px-4">
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 max-w-md w-full p-8 text-center space-y-6">
+        <div class="inline-flex bg-amber-50 text-amber-600 p-4 rounded-full text-3xl">
+            ⏳
+        </div>
+        <div class="space-y-2">
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Acesso Aguardando Confirmação</h1>
+            <p class="text-sm text-slate-500 leading-relaxed">
+                Sua conta foi criada com sucesso, mas o acesso ainda está pendente de confirmação de pagamento ou liberação pelo administrador.
+            </p>
+        </div>
+        <div class="pt-4 border-t border-slate-100">
+            <a href="{{ url_for('login') }}" class="inline-block w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-sm">
+                Voltar para o Login
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
