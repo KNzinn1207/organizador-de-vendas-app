@@ -95,7 +95,7 @@ def register():
 
     novo_usuario = User(
         email=email,
-        senha=generate_password_hash(senha, method='scrypt'),
+        senha=generate_password_hash(senha),  # Método seguro padrão ajustado
         ativo=True if primeiro_usuario else False,
         is_admin=True if primeiro_usuario else False,
     )
