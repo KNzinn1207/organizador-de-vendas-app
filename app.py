@@ -14,11 +14,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sua_chave_secreta_super_segura'
 
-# Caminho absoluto seguro para o banco de dados no Render/nuvem
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = (
-    'sqlite:///' + os.path.join(basedir, 'database.db')
-)
+# Caminho seguro para escrita e armazenamento do SQLite no Render
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/database.db'
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
