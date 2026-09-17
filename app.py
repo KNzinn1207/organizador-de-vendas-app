@@ -18,17 +18,12 @@ app.config['SECRET_KEY'] = 'sua_chave_secreta_super_segura'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/database.db'
 
 db = SQLAlchemy(app)
-
-# Garante a criação das tabelas no contexto da aplicação logo na inicialização
-with app.app_context():
-  db.create_all()
-
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 
-# Modelos do Banco de Dados Atualizados
+# 1. MODELOS DO BANCO DE DADOS (Devem vir PRIMEIRO)
 class User(UserMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
   email = db.Column(db.String(150), unique=True, nullable=False)
@@ -51,6 +46,11 @@ class Pedido(db.Model):
   status = db.Column(db.String(20), default='Pendente')
   feedback = db.Column(db.Text, nullable=True)
   user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
+# 2. CRIAÇÃO DAS TABELAS (Executado DEPOIS que os modelos já existem)
+with app.app_context():
+  db.create_all()
 
 
 @login_manager.user_loader
