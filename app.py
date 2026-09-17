@@ -23,7 +23,7 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 
-# 1. MODELOS DO BANCO DE DADOS (Devem vir PRIMEIRO)
+# 1. MODELOS DO BANCO DE DADOS
 class User(UserMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
   email = db.Column(db.String(150), unique=True, nullable=False)
@@ -40,6 +40,9 @@ class User(UserMixin, db.Model):
 class Pedido(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   nome_cliente = db.Column(db.String(100), nullable=False)
+  telefone = db.Column(
+      db.String(30), nullable=False
+  )  # Novo campo de Telefone / WhatsApp
   produto = db.Column(db.String(100), nullable=False)
   horario = db.Column(db.String(50), nullable=False)
   valor = db.Column(db.String(50), nullable=False)
@@ -48,7 +51,7 @@ class Pedido(db.Model):
   user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
-# 2. CRIAÇÃO DAS TABELAS (Executado DEPOIS que os modelos já existem)
+# 2. CRIAÇÃO DAS TABELAS
 with app.app_context():
   db.create_all()
 
@@ -67,16 +70,13 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and check_password_hash(user.senha, senha):
-      # Se for admin, deixa entrar direto
       if user.is_admin:
         login_user(user)
         return redirect(url_for('admin_painel'))
 
-      # Se não for admin e a conta estiver bloqueada
       if not user.ativo:
         return redirect(url_for('aguardando_aprovacao'))
 
-      # Conta aprovada normal
       login_user(user)
       return redirect(url_for('index'))
     else:
@@ -96,7 +96,6 @@ def register():
       flash('Este e-mail já está cadastrado.', 'warning')
       return redirect(url_for('register'))
 
-    # Verifica se já existe algum usuário no sistema
     total_usuarios = User.query.count()
     primeiro_usuario = total_usuarios == 0
 
@@ -172,13 +171,15 @@ def index():
 
   if request.method == 'POST':
     nome_cliente = request.form.get('nome_cliente')
+    telefone = request.form.get('telefone')  # Capturando o telefone
     produto = request.form.get('produto')
     horario = request.form.get('horario')
     valor = request.form.get('valor')
 
-    if nome_cliente and produto and horario and valor:
+    if nome_cliente and telefone and produto and horario and valor:
       novo_pedido = Pedido(
           nome_cliente=nome_cliente,
+          telefone=telefone,
           produto=produto,
           horario=horario,
           valor=valor,
