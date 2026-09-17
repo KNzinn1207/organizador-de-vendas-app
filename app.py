@@ -13,7 +13,12 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sua_chave_secreta_super_segura'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+
+# Caminho absoluto seguro para o banco de dados no Render/nuvem
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    'sqlite:///' + os.path.join(basedir, 'database.db')
+)
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -95,7 +100,7 @@ def register():
 
     novo_usuario = User(
         email=email,
-        senha=generate_password_hash(senha),  # Método seguro padrão ajustado
+        senha=generate_password_hash(senha),
         ativo=True if primeiro_usuario else False,
         is_admin=True if primeiro_usuario else False,
     )
