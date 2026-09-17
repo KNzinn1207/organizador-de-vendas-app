@@ -16,7 +16,7 @@ app.config['SECRET_KEY'] = 'sua_chave_secreta_super_segura'
 
 # Conexão Oficial com o Supabase PostgreSQL
 app.config['SQLALCHEMY_DATABASE_URI'] = (
-    'postgresql://postgres.kltxcczyqrkcrepyuxdy:Kenonxitado1207ssaa@aws-0-us-west-2.pooler.supabase.com:6543/postgres?pgbouncer=true'
+    'postgresql://postgres.kltxcczyqrkcrepyuxdy:Kenonxitado1207ssaa@aws-0-us-west-2.pooler.supabase.com:6543/postgres'
 )
 
 db = SQLAlchemy(app)
