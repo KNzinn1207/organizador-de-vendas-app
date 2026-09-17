@@ -14,8 +14,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sua_chave_secreta_super_segura'
 
-# Caminho seguro para escrita e armazenamento do SQLite no Render
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/database.db'
+# Conexão Oficial com o Supabase PostgreSQL
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    'postgresql://postgres:Kenonxitado1207ssaa@db.kltxcczyqrkcrepyuxdy.supabase.co:5432/postgres'
+)
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -25,6 +27,7 @@ login_manager.login_view = 'login'
 
 # 1. MODELOS DO BANCO DE DADOS
 class User(UserMixin, db.Model):
+  __tablename__ = 'user'
   id = db.Column(db.Integer, primary_key=True)
   email = db.Column(db.String(150), unique=True, nullable=False)
   senha = db.Column(db.String(150), nullable=False)
@@ -38,11 +41,10 @@ class User(UserMixin, db.Model):
 
 
 class Pedido(db.Model):
+  __tablename__ = 'pedido'
   id = db.Column(db.Integer, primary_key=True)
   nome_cliente = db.Column(db.String(100), nullable=False)
-  telefone = db.Column(
-      db.String(30), nullable=False
-  )  # Novo campo de Telefone / WhatsApp
+  telefone = db.Column(db.String(30), nullable=False)  # Campo de Telefone / WhatsApp
   produto = db.Column(db.String(100), nullable=False)
   horario = db.Column(db.String(50), nullable=False)
   valor = db.Column(db.String(50), nullable=False)
@@ -171,7 +173,7 @@ def index():
 
   if request.method == 'POST':
     nome_cliente = request.form.get('nome_cliente')
-    telefone = request.form.get('telefone')  # Capturando o telefone
+    telefone = request.form.get('telefone')
     produto = request.form.get('produto')
     horario = request.form.get('horario')
     valor = request.form.get('valor')
